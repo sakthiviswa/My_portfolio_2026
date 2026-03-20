@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef } from "react";
-import profileImg from "../assets/public.png";
+import profileImg from "../assets/bg.png";
 
 /* ── Standard SVG icons ── */
 const MailIcon = () => (

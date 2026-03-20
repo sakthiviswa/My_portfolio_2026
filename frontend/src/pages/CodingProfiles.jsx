@@ -18,6 +18,55 @@ const HackerRankIcon = () => (
   </svg>
 );
 
+/* ── Stars canvas ── */
+function SectionStars() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let raf;
+    const resize = () => {
+      canvas.width  = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    const makeStars = () => Array.from({ length: 140 }, () => ({
+      x:   Math.random() * canvas.width,
+      y:   Math.random() * canvas.height,
+      r:   Math.random() * 1.5 + 0.3,
+      a:   Math.random(),
+      da:  (Math.random() - 0.5) * 0.007,
+      col: Math.random() > 0.55 ? "#f0c040" : "#c070ff",
+    }));
+    resize();
+    let s = makeStars();
+    const onResize = () => { resize(); s = makeStars(); };
+    window.addEventListener("resize", onResize);
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      s.forEach(star => {
+        star.a += star.da;
+        if (star.a <= 0 || star.a >= 1) star.da *= -1;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fillStyle   = star.col;
+        ctx.globalAlpha = Math.max(0, Math.min(1, star.a));
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
+  }, []);
+  return (
+    <canvas ref={ref} style={{
+      position:"absolute", inset:0, width:"100%", height:"100%",
+      pointerEvents:"none", zIndex:0,
+    }}/>
+  );
+}
+
 /* ── animated counter ── */
 function useCounter(target, trigger) {
   const [val, setVal] = useState(0);
@@ -112,9 +161,7 @@ function buildMonthLabels(weeks) {
   return labels;
 }
 
-/* ════════════════════════════════════════════════
-   ROW 1 — LEETCODE (full-width, with heatmap)
-════════════════════════════════════════════════ */
+/* ── LeetCode row ── */
 function LeetCodeRow({ trigger }) {
   const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
@@ -154,7 +201,6 @@ function LeetCodeRow({ trigger }) {
       background:"rgba(14,2,36,0.97)", border:`1px solid ${BD}`,
       borderRadius:"20px", padding:"1.6rem 1.8rem", width:"100%",
     }}>
-      {/* header */}
       <div style={{ display:"flex", alignItems:"center", gap:"14px", marginBottom:"1.4rem" }}>
         <div style={{ width:"46px",height:"46px",borderRadius:"12px",
           background:BG,border:`1px solid ${BD}`,color:C,
@@ -187,8 +233,6 @@ function LeetCodeRow({ trigger }) {
 
       {!loading && (
         <div style={{ display:"grid",gridTemplateColumns:"auto 1fr",gap:"2rem",alignItems:"start" }}>
-
-          {/* LEFT: donut + stats */}
           <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:"1rem",minWidth:"200px" }}>
             <svg width="110" height="110" viewBox="0 0 110 110">
               <circle cx="55" cy="55" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="9"/>
@@ -202,7 +246,6 @@ function LeetCodeRow({ trigger }) {
               <text x="55" y="80" textAnchor="middle" fill={C}
                 fontFamily="JetBrains Mono,monospace" fontSize="10" opacity="0.65">{pct}%</text>
             </svg>
-
             <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",width:"100%" }}>
               {[{l:"Easy",v:aEasy,c:"#00b8a3"},{l:"Medium",v:aMed,c:"#FFC01E"},{l:"Hard",v:aHard,c:"#EF4743"}].map(s=>(
                 <div key={s.l} style={{ background:`${s.c}12`,border:`1px solid ${s.c}40`,
@@ -212,7 +255,6 @@ function LeetCodeRow({ trigger }) {
                 </div>
               ))}
             </div>
-
             <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",width:"100%" }}>
               {[{l:"Streak",v:streak,u:"days"},{l:"Active Days",v:active,u:"total"}].map(s=>(
                 <div key={s.l} style={{ background:"rgba(255,161,22,0.06)",border:`1px solid ${BD}`,
@@ -225,8 +267,6 @@ function LeetCodeRow({ trigger }) {
               ))}
             </div>
           </div>
-
-          {/* RIGHT: heatmap */}
           <div>
             <div style={{ fontFamily:"'Cinzel',serif",fontSize:"10px",letterSpacing:"0.16em",
               color:"#8060a0",marginBottom:"10px" }}>
@@ -235,7 +275,7 @@ function LeetCodeRow({ trigger }) {
             {weeks ? (
               <>
                 <div style={{ position:"relative",height:"14px",marginBottom:"4px" }}>
-                {mLabels.map(({wi,label})=>(
+                  {mLabels.map(({wi,label})=>(
                     <span key={`${label}-${wi}`} style={{ position:"absolute",left:`${(wi/weeks.length)*100}%`,
                       fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:"#8060a0" }}>{label}</span>
                   ))}
@@ -278,9 +318,7 @@ function LeetCodeRow({ trigger }) {
   );
 }
 
-/* ════════════════════════════════════════════════
-   ROW 2 CARD — minimal: solved count + visit only
-════════════════════════════════════════════════ */
+/* ── Minimal card ── */
 function MinimalCard({ name, handle, url, color, bg, border, Icon, endpoint, trigger }) {
   const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
@@ -312,7 +350,6 @@ function MinimalCard({ name, handle, url, color, bg, border, Icon, endpoint, tri
         display:"flex", flexDirection:"column",
       }}
     >
-      {/* header */}
       <div style={{ display:"flex", alignItems:"center", gap:"12px", marginBottom:"1.4rem" }}>
         <div style={{ width:"44px",height:"44px",borderRadius:"12px",
           background:bg, border:`1px solid ${border}`, color,
@@ -322,25 +359,19 @@ function MinimalCard({ name, handle, url, color, bg, border, Icon, endpoint, tri
         </div>
         <div>
           <div style={{ fontFamily:"'Cinzel',serif",fontSize:"16px",fontWeight:700,color }}>{name}</div>
-          <div style={{ fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:"#8060a0" }}>
-            @{handle}
-          </div>
+          <div style={{ fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:"#8060a0" }}>@{handle}</div>
         </div>
       </div>
 
-      {/* content */}
       {loading && <Dots color={color}/>}
-
       {!loading && error && (
         <p style={{ fontSize:"11px",color:"rgba(255,100,100,0.7)",textAlign:"center",flex:1,
           display:"flex",alignItems:"center",justifyContent:"center" }}>
           Could not load live data
         </p>
       )}
-
       {!loading && !error && (
         <div style={{ flex:1 }}>
-          {/* big number */}
           <div style={{ marginBottom:"0.5rem" }}>
             <div style={{ fontFamily:"'JetBrains Mono',monospace",fontSize:"4rem",
               fontWeight:700,lineHeight:1,color }}>
@@ -354,7 +385,6 @@ function MinimalCard({ name, handle, url, color, bg, border, Icon, endpoint, tri
         </div>
       )}
 
-      {/* visit profile — always at bottom */}
       <div style={{ marginTop:"auto", paddingTop:"1rem",
         borderTop:`1px solid ${border}`, display:"flex", justifyContent:"flex-end" }}>
         <VisitLink url={url} color={color}/>
@@ -363,9 +393,7 @@ function MinimalCard({ name, handle, url, color, bg, border, Icon, endpoint, tri
   );
 }
 
-/* ════════════════════════════════════════════════
-   MAIN
-════════════════════════════════════════════════ */
+/* ── Main ── */
 const CodingProfiles = forwardRef(function CodingProfiles(_, ref) {
   const sectionRef = useRef(null);
   const [visible, setVisible] = useState(false);
@@ -401,52 +429,62 @@ const CodingProfiles = forwardRef(function CodingProfiles(_, ref) {
   const animTotal = useCounter(total, visible);
 
   return (
-    <section ref={setRef} className="page-section" style={{
-      justifyContent:"flex-start", paddingTop:"88px",
-      background:
-        "radial-gradient(ellipse at 80% 70%, rgba(106,31,160,0.28) 0%, transparent 55%)," +
-        "radial-gradient(ellipse at 10% 20%, rgba(155,64,212,0.16) 0%, transparent 45%), #0d0118",
-    }}>
-      <SectionHeader eyebrow="PROBLEM SOLVING" title="Coding" highlight="Profiles"/>
+    <section
+      ref={setRef}
+      className="page-section"
+      style={{
+        position: "relative",       /* contains stars */
+        overflow: "hidden",
+        justifyContent: "flex-start",
+        paddingTop: "88px",
+        background:
+          "radial-gradient(ellipse at 80% 70%, rgba(106,31,160,0.28) 0%, transparent 55%)," +
+          "radial-gradient(ellipse at 10% 20%, rgba(155,64,212,0.16) 0%, transparent 45%), #0d0118",
+      }}
+    >
+      {/* ── Stars layer ── */}
+      <SectionStars />
 
-      {/* total banner */}
-      <div style={{ display:"inline-flex",alignItems:"center",gap:"14px",
-        background:"rgba(240,192,64,0.06)",border:"1px solid rgba(240,192,64,0.22)",
-        borderRadius:"14px",padding:"10px 28px",marginBottom:"1.8rem" }}>
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="#f0c040">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
-        <div>
-          <div style={{ fontFamily:"'JetBrains Mono',monospace",fontSize:"1.9rem",
-            fontWeight:600,color:"#f0c040",lineHeight:1 }}>
-            {animTotal || total}+
-          </div>
-          <div style={{ fontSize:"10px",letterSpacing:"0.14em",color:"#8060a0",
-            marginTop:"4px",textTransform:"uppercase" }}>
-            Problems Solved Across All Platforms
+      {/* ── Content above stars ── */}
+      <div style={{ position:"relative", zIndex:1, width:"100%", display:"flex", flexDirection:"column", alignItems:"center" }}>
+
+        <SectionHeader eyebrow="PROBLEM SOLVING" title="Coding" highlight="Profiles"/>
+
+        {/* total banner */}
+        <div style={{ display:"inline-flex",alignItems:"center",gap:"14px",
+          background:"rgba(240,192,64,0.06)",border:"1px solid rgba(240,192,64,0.22)",
+          borderRadius:"14px",padding:"10px 28px",marginBottom:"1.8rem" }}>
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="#f0c040">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          <div>
+            <div style={{ fontFamily:"'JetBrains Mono',monospace",fontSize:"1.9rem",
+              fontWeight:600,color:"#f0c040",lineHeight:1 }}>
+              {animTotal || total}+
+            </div>
+            <div style={{ fontSize:"10px",letterSpacing:"0.14em",color:"#8060a0",
+              marginTop:"4px",textTransform:"uppercase" }}>
+              Problems Solved Across All Platforms
+            </div>
           </div>
         </div>
-      </div>
 
-      <div style={{ maxWidth:"1020px",width:"100%",display:"flex",flexDirection:"column",gap:"18px" }}>
-
-        {/* ROW 1 — LeetCode full width + heatmap */}
-        <LeetCodeRow trigger={visible}/>
-
-        {/* ROW 2 — GFG + HackerRank: solved count + visit only */}
-        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"18px" }}>
-          <MinimalCard
-            name="GeeksForGeeks" handle="sakthivs051"
-            url="https://www.geeksforgeeks.org/profile/sakthivs051?tab=activity"
-            color="#2F8D46" bg="rgba(47,141,70,0.08)" border="rgba(47,141,70,0.28)"
-            Icon={GFGIcon} endpoint="/api/gfg" trigger={visible}
-          />
-          <MinimalCard
-            name="HackerRank" handle="sakthiviswa61"
-            url="https://www.hackerrank.com/profile/sakthiviswa61"
-            color="#00EA64" bg="rgba(0,234,100,0.08)" border="rgba(0,234,100,0.25)"
-            Icon={HackerRankIcon} endpoint="/api/hackerrank" trigger={visible}
-          />
+        <div style={{ maxWidth:"1020px",width:"100%",display:"flex",flexDirection:"column",gap:"18px" }}>
+          <LeetCodeRow trigger={visible}/>
+          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"18px" }}>
+            <MinimalCard
+              name="GeeksForGeeks" handle="sakthivs051"
+              url="https://www.geeksforgeeks.org/profile/sakthivs051?tab=activity"
+              color="#2F8D46" bg="rgba(47,141,70,0.08)" border="rgba(47,141,70,0.28)"
+              Icon={GFGIcon} endpoint="/api/gfg" trigger={visible}
+            />
+            <MinimalCard
+              name="HackerRank" handle="sakthiviswa61"
+              url="https://www.hackerrank.com/profile/sakthiviswa61"
+              color="#00EA64" bg="rgba(0,234,100,0.08)" border="rgba(0,234,100,0.25)"
+              Icon={HackerRankIcon} endpoint="/api/hackerrank" trigger={visible}
+            />
+          </div>
         </div>
 
       </div>

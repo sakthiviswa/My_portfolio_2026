@@ -34,23 +34,74 @@ const FlameIcon = () => (
   </svg>
 );
 
-/* ════════════════════════════════════════════
-   CONFIG  ← your GitHub username here
-════════════════════════════════════════════ */
 const GITHUB_USERNAME = "sakthiviswa";
 
-/* Contribution heatmap colours */
 const LEVEL_COLORS = [
-  "#1a0533",               // L0 – empty
-  "rgba(106,31,160,0.5)",  // L1
-  "rgba(155,64,212,0.75)", // L2
-  "rgba(192,112,255,0.9)", // L3
-  "#f0c040",               // L4 – gold
+  "#1a0533",
+  "rgba(106,31,160,0.5)",
+  "rgba(155,64,212,0.75)",
+  "rgba(192,112,255,0.9)",
+  "#f0c040",
 ];
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-/* Animated counter */
+/* ── Stars canvas ── */
+function SectionStars() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let raf;
+    const resize = () => {
+      canvas.width  = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    const makeStars = () => Array.from({ length: 140 }, () => ({
+      x:   Math.random() * canvas.width,
+      y:   Math.random() * canvas.height,
+      r:   Math.random() * 1.5 + 0.3,
+      a:   Math.random(),
+      da:  (Math.random() - 0.5) * 0.007,
+      col: Math.random() > 0.55 ? "#f0c040" : "#c070ff",
+    }));
+    resize();
+    let s = makeStars();
+    const onResize = () => { resize(); s = makeStars(); };
+    window.addEventListener("resize", onResize);
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      s.forEach(star => {
+        star.a += star.da;
+        if (star.a <= 0 || star.a >= 1) star.da *= -1;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fillStyle   = star.col;
+        ctx.globalAlpha = Math.max(0, Math.min(1, star.a));
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
+  }, []);
+  return (
+    <canvas
+      ref={ref}
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        zIndex: 0,
+      }}
+    />
+  );
+}
+
 function useCounter(target, duration = 1200, trigger) {
   const [val, setVal] = useState(0);
   useEffect(() => {
@@ -67,11 +118,6 @@ function useCounter(target, duration = 1200, trigger) {
   return val;
 }
 
-/* ════════════════════════════════════════════
-   FETCH helpers
-════════════════════════════════════════════ */
-
-/* REST API — public user info + repos (no token needed) */
 async function fetchUserData(username) {
   const [userRes, reposRes] = await Promise.all([
     fetch(`https://api.github.com/users/${username}`),
@@ -83,44 +129,31 @@ async function fetchUserData(username) {
   return { user, repos };
 }
 
-/*
-  Contribution data requires the GraphQL API with a token.
-  We fetch from a public proxy (github-contributions-api)
-  which returns daily counts without authentication.
-*/
 async function fetchContributions(username) {
   const res = await fetch(
     `https://github-contributions-api.jogruber.de/v4/${username}?y=last`
   );
   if (!res.ok) throw new Error("Contributions fetch failed");
   const data = await res.json();
-  // data.contributions: [{ date:"2024-03-20", count:3, level:0|1|2|3|4 }]
   return data.contributions || [];
 }
 
-/* ════════════════════════════════════════════
-   COMPONENT
-════════════════════════════════════════════ */
 const GitHub = forwardRef(function GitHub(_, ref) {
   const sectionRef = useRef(null);
   const [visible,       setVisible]       = useState(false);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState(null);
-
-  /* GitHub data */
   const [user,          setUser]          = useState(null);
   const [repos,         setRepos]         = useState([]);
-  const [contributions, setContributions] = useState([]); // [{date,count,level}]
+  const [contributions, setContributions] = useState([]);
   const [totalCommits,  setTotalCommits]  = useState(0);
 
-  /* Merge refs */
   const setRef = (el) => {
     sectionRef.current = el;
     if (typeof ref === "function") ref(el);
     else if (ref) ref.current = el;
   };
 
-  /* Trigger when visible */
   useEffect(() => {
     const obs = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) setVisible(true); },
@@ -130,32 +163,21 @@ const GitHub = forwardRef(function GitHub(_, ref) {
     return () => obs.disconnect();
   }, []);
 
-  /* Fetch on first visibility */
   useEffect(() => {
     if (!visible) return;
     let cancelled = false;
-
     const load = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
+        setLoading(true); setError(null);
         const [{ user: u, repos: r }, contribs] = await Promise.all([
           fetchUserData(GITHUB_USERNAME),
           fetchContributions(GITHUB_USERNAME),
         ]);
-
         if (cancelled) return;
-
         setUser(u);
-
-        /* Top 4 repos by stars */
-        const sorted = [...r]
-          .filter(repo => !repo.fork)
-          .sort((a, b) => b.stargazers_count - a.stargazers_count)
-          .slice(0, 2);
+        const sorted = [...r].filter(repo => !repo.fork)
+          .sort((a, b) => b.stargazers_count - a.stargazers_count).slice(0, 2);
         setRepos(sorted);
-
         setContributions(contribs);
         setTotalCommits(contribs.reduce((s, d) => s + d.count, 0));
       } catch (err) {
@@ -164,33 +186,24 @@ const GitHub = forwardRef(function GitHub(_, ref) {
         if (!cancelled) setLoading(false);
       }
     };
-
     load();
     return () => { cancelled = true; };
   }, [visible]);
 
-  /* Animated counters — fire once data is loaded */
-  const dataReady     = !loading && !error && !!user;
-  const cCommits      = useCounter(totalCommits,              1400, dataReady);
-  const cRepos        = useCounter(user?.public_repos || 0,  900,  dataReady);
-  const cFollowers    = useCounter(user?.followers || 0,     800,  dataReady);
-  const cFollowing    = useCounter(user?.following || 0,     800,  dataReady);
+  const dataReady  = !loading && !error && !!user;
+  const cCommits   = useCounter(totalCommits,             1400, dataReady);
+  const cRepos     = useCounter(user?.public_repos || 0, 900,  dataReady);
+  const cFollowers = useCounter(user?.followers    || 0, 800,  dataReady);
+  const cFollowing = useCounter(user?.following    || 0, 800,  dataReady);
 
-  /* Build 52-week heatmap grid from contribution data */
   const buildGrid = () => {
     if (!contributions.length) return null;
-
-    /* Group by ISO week (Sun-Sat) */
     const byDate = {};
     contributions.forEach(d => { byDate[d.date] = d; });
-
-    /* Start from 52 weeks ago (most recent Sunday) */
     const today = new Date();
     const startDay = new Date(today);
     startDay.setDate(today.getDate() - 364);
-    // align to Sunday
     startDay.setDate(startDay.getDate() - startDay.getDay());
-
     const weeks = [];
     let cur = new Date(startDay);
     for (let w = 0; w < 53; w++) {
@@ -206,16 +219,12 @@ const GitHub = forwardRef(function GitHub(_, ref) {
     return weeks;
   };
 
-  /* Month labels for grid */
   const buildMonthLabels = (weeks) => {
     const labels = [];
     let lastMonth = -1;
     weeks.forEach((week, wi) => {
       const m = new Date(week[0].date).getMonth();
-      if (m !== lastMonth) {
-        labels.push({ idx: wi, label: MONTHS[m] });
-        lastMonth = m;
-      }
+      if (m !== lastMonth) { labels.push({ idx: wi, label: MONTHS[m] }); lastMonth = m; }
     });
     return labels;
   };
@@ -230,12 +239,13 @@ const GitHub = forwardRef(function GitHub(_, ref) {
     { label:"FOLLOWING", val:cFollowing, Icon:FlameIcon  },
   ];
 
-  /* ── RENDER ── */
   return (
     <section
       ref={setRef}
       className="page-section"
       style={{
+        position: "relative",        /* ← contains the stars canvas */
+        overflow: "hidden",
         justifyContent: "flex-start",
         paddingTop: "90px",
         background:
@@ -244,220 +254,185 @@ const GitHub = forwardRef(function GitHub(_, ref) {
           "#0d0118",
       }}
     >
-      <SectionHeader eyebrow="OPEN SOURCE ACTIVITY" title="GitHub" highlight="Contributions" />
+      {/* ── Stars layer ── */}
+      <SectionStars />
 
-      {/* ── Loading / Error ── */}
-      {loading && (
-        <div style={{ textAlign:"center", padding:"3rem 0" }}>
-          <div style={{ fontFamily:"'Cinzel',serif", fontSize:"12px", letterSpacing:"0.2em", color:"#8060a0" }}>
-            FETCHING GITHUB DATA...
-          </div>
-          {/* Pulsing dots */}
-          <div style={{ display:"flex", gap:"8px", justifyContent:"center", marginTop:"1rem" }}>
-            {[0,1,2].map(i => (
-              <div key={i} style={{
-                width:"8px", height:"8px", borderRadius:"50%",
-                background:"#6a1fa0",
-                animation:`pulse 1.2s ${i*0.2}s ease-in-out infinite`,
-              }}/>
-            ))}
-          </div>
-          <style>{`@keyframes pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}`}</style>
-        </div>
-      )}
+      {/* ── All content sits above stars ── */}
+      <div style={{ position:"relative", zIndex:1, width:"100%", display:"flex", flexDirection:"column", alignItems:"center" }}>
 
-      {error && (
-        <div style={{
-          background:"rgba(239,71,67,0.1)", border:"1px solid rgba(239,71,67,0.3)",
-          borderRadius:"12px", padding:"1.2rem 2rem", maxWidth:"500px",
-          textAlign:"center", marginTop:"1rem",
-        }}>
-          <div style={{ fontFamily:"'Cinzel',serif", fontSize:"12px", color:"#EF4743", marginBottom:"8px" }}>
-            FAILED TO LOAD GITHUB DATA
-          </div>
-          <div style={{ fontSize:"12px", color:"#8060a0" }}>{error}</div>
-          <div style={{ fontSize:"11px", color:"#8060a0", marginTop:"8px" }}>
-            Check that <strong style={{color:"#f0c040"}}>GITHUB_USERNAME</strong> in GitHub.jsx is correct.
-          </div>
-        </div>
-      )}
+        <SectionHeader eyebrow="OPEN SOURCE ACTIVITY" title="GitHub" highlight="Contributions" />
 
-      {/* ── Content once loaded ── */}
-      {dataReady && (
-        <>
-          {/* Profile strip */}
-          <div style={{
-            display:"flex", alignItems:"center", gap:"1.2rem",
-            background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.18)",
-            borderRadius:"16px", padding:"1rem 1.6rem",
-            maxWidth:"860px", width:"100%", marginBottom:"1.4rem",
-          }}>
-            {/* Real GitHub avatar */}
-            <img
-              src={user.avatar_url}
-              alt={user.login}
-              style={{ width:"56px", height:"56px", borderRadius:"50%", border:"2px solid rgba(240,192,64,0.35)", flexShrink:0, objectFit:"cover" }}
-            />
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontFamily:"'Cinzel',serif", fontSize:"17px", fontWeight:700, color:"#f0c040" }}>
-                {user.name || user.login}
-              </div>
-              <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"11px", color:"#8060a0" }}>
-                @{user.login}
-              </div>
-              {user.bio && (
-                <div style={{ fontSize:"12px", color:"#c4a0e8", marginTop:"4px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                  {user.bio}
-                </div>
-              )}
+        {loading && (
+          <div style={{ textAlign:"center", padding:"3rem 0" }}>
+            <div style={{ fontFamily:"'Cinzel',serif", fontSize:"12px", letterSpacing:"0.2em", color:"#8060a0" }}>
+              FETCHING GITHUB DATA...
             </div>
-            <a
-              href={`https://github.com/${GITHUB_USERNAME}`}
-              target="_blank" rel="noreferrer"
-              className="btn-ghost"
-              style={{ fontSize:"10px", padding:"7px 16px", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:"6px" }}
-            >
-              <GithubIcon size={13} /> VIEW PROFILE ↗
-            </a>
+            <div style={{ display:"flex", gap:"8px", justifyContent:"center", marginTop:"1rem" }}>
+              {[0,1,2].map(i => (
+                <div key={i} style={{
+                  width:"8px", height:"8px", borderRadius:"50%", background:"#6a1fa0",
+                  animation:`pulse 1.2s ${i*0.2}s ease-in-out infinite`,
+                }}/>
+              ))}
+            </div>
+            <style>{`@keyframes pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}`}</style>
           </div>
+        )}
 
-          {/* Stat counters */}
+        {error && (
           <div style={{
-            display:"grid", gridTemplateColumns:"repeat(4,1fr)",
-            gap:"12px", maxWidth:"860px", width:"100%", marginBottom:"1.4rem",
+            background:"rgba(239,71,67,0.1)", border:"1px solid rgba(239,71,67,0.3)",
+            borderRadius:"12px", padding:"1.2rem 2rem", maxWidth:"500px",
+            textAlign:"center", marginTop:"1rem",
           }}>
-            {STATS.map(({ label, val, Icon }) => (
-              <div key={label} style={{
-                background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.13)",
-                borderRadius:"14px", padding:"1.1rem 1rem", textAlign:"center",
-              }}>
-                <div style={{ display:"flex", justifyContent:"center", color:"#f0c040", marginBottom:"6px" }}>
-                  <Icon />
-                </div>
-                <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"1.9rem", fontWeight:500, color:"#f0c040", lineHeight:1 }}>
-                  {val}
-                </div>
-                <div style={{ fontSize:"9px", letterSpacing:"0.12em", color:"#8060a0", marginTop:"5px" }}>
-                  {label}
-                </div>
-              </div>
-            ))}
+            <div style={{ fontFamily:"'Cinzel',serif", fontSize:"12px", color:"#EF4743", marginBottom:"8px" }}>
+              FAILED TO LOAD GITHUB DATA
+            </div>
+            <div style={{ fontSize:"12px", color:"#8060a0" }}>{error}</div>
+            <div style={{ fontSize:"11px", color:"#8060a0", marginTop:"8px" }}>
+              Check that <strong style={{color:"#f0c040"}}>GITHUB_USERNAME</strong> in GitHub.jsx is correct.
+            </div>
           </div>
+        )}
 
-          {/* Contribution heatmap */}
-          {weeks && (
+        {dataReady && (
+          <>
+            {/* Profile strip */}
             <div style={{
-              background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.13)",
-              borderRadius:"16px", padding:"1.3rem 1.5rem",
+              display:"flex", alignItems:"center", gap:"1.2rem",
+              background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.18)",
+              borderRadius:"16px", padding:"1rem 1.6rem",
               maxWidth:"860px", width:"100%", marginBottom:"1.4rem",
             }}>
-              <div style={{ fontFamily:"'Cinzel',serif", fontSize:"10px", letterSpacing:"0.18em", color:"#8060a0", marginBottom:"10px" }}>
-                ✦ CONTRIBUTION ACTIVITY — PAST 12 MONTHS · {totalCommits} TOTAL ✦
+              <img src={user.avatar_url} alt={user.login} style={{ width:"56px", height:"56px", borderRadius:"50%", border:"2px solid rgba(240,192,64,0.35)", flexShrink:0, objectFit:"cover" }} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontFamily:"'Cinzel',serif", fontSize:"17px", fontWeight:700, color:"#f0c040" }}>{user.name || user.login}</div>
+                <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"11px", color:"#8060a0" }}>@{user.login}</div>
+                {user.bio && (
+                  <div style={{ fontSize:"12px", color:"#c4a0e8", marginTop:"4px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.bio}</div>
+                )}
               </div>
-
-              {/* Month label row */}
-              <div style={{ display:"flex", marginBottom:"4px", paddingLeft:"0px", position:"relative", height:"14px" }}>
-                {monthLabels.map(({ idx, label }) => (
-                  <div key={`${idx}-${label}`} style={{
-                    position:"absolute",
-                    left:`${(idx / weeks.length) * 100}%`,
-                    fontFamily:"'JetBrains Mono',monospace",
-                    fontSize:"9px", color:"#8060a0",
-                  }}>{label}</div>
-                ))}
-              </div>
-
-              {/* Grid — render as columns (weeks) */}
-              <div style={{ display:"flex", gap:"2px" }}>
-                {weeks.map((week, wi) => (
-                  <div key={wi} style={{ display:"flex", flexDirection:"column", gap:"2px", flex:1 }}>
-                    {week.map((day, di) => (
-                      <div
-                        key={di}
-                        title={`${day.date} — ${day.count} contribution${day.count !== 1 ? "s" : ""}`}
-                        style={{
-                          width:"100%",
-                          aspectRatio:"1",
-                          borderRadius:"2px",
-                          background: LEVEL_COLORS[day.level] || LEVEL_COLORS[0],
-                          cursor:"pointer",
-                          transition:"transform 0.1s",
-                          boxShadow: day.level === 4 ? "0 0 4px rgba(240,192,64,0.55)" : "none",
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.transform="scale(1.8)"; e.currentTarget.style.zIndex="20"; }}
-                        onMouseLeave={e => { e.currentTarget.style.transform=""; e.currentTarget.style.zIndex=""; }}
-                      />
-                    ))}
-                  </div>
-                ))}
-              </div>
-
-              {/* Legend */}
-              <div style={{ display:"flex", alignItems:"center", gap:"5px", marginTop:"8px", justifyContent:"flex-end" }}>
-                <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"9px", color:"#8060a0" }}>Less</span>
-                {LEVEL_COLORS.map((c, i) => (
-                  <div key={i} style={{ width:"10px", height:"10px", borderRadius:"2px", background:c, border: i===0 ? "1px solid rgba(240,192,64,0.15)" : "none" }} />
-                ))}
-                <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"9px", color:"#8060a0" }}>More</span>
-              </div>
+              <a href={`https://github.com/${GITHUB_USERNAME}`} target="_blank" rel="noreferrer"
+                className="btn-ghost"
+                style={{ fontSize:"10px", padding:"7px 16px", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:"6px" }}>
+                <GithubIcon size={13} /> VIEW PROFILE ↗
+              </a>
             </div>
-          )}
 
-          {/* Pinned repos — real data */}
-          {repos.length > 0 && (
-            <div style={{ maxWidth:"860px", width:"100%" }}>
-              <div style={{ fontFamily:"'Cinzel',serif", fontSize:"10px", letterSpacing:"0.18em", color:"#8060a0", marginBottom:"10px" }}>
-                ✦ TOP REPOSITORIES ✦
-              </div>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:"12px" }}>
-                {repos.map(repo => (
-                  <a
-                    key={repo.id}
-                    href={repo.html_url}
-                    target="_blank" rel="noreferrer"
-                    style={{
-                      display:"block", textDecoration:"none",
-                      background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.13)",
-                      borderRadius:"14px", padding:"1.1rem 1.3rem", transition:"border-color 0.2s, transform 0.2s",
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor="rgba(240,192,64,0.45)"; e.currentTarget.style.transform="translateY(-3px)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor="rgba(240,192,64,0.13)"; e.currentTarget.style.transform=""; }}
-                  >
-                    <div style={{ display:"flex", alignItems:"center", gap:"7px", marginBottom:"5px" }}>
-                      <div style={{ color:"#c070ff" }}><GithubIcon size={16}/></div>
-                      <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"13px", fontWeight:500, color:"#c070ff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                        {repo.name}
-                      </span>
+            {/* Stat counters */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"12px", maxWidth:"860px", width:"100%", marginBottom:"1.4rem" }}>
+              {STATS.map(({ label, val, Icon }) => (
+                <div key={label} style={{
+                  background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.13)",
+                  borderRadius:"14px", padding:"1.1rem 1rem", textAlign:"center",
+                }}>
+                  <div style={{ display:"flex", justifyContent:"center", color:"#f0c040", marginBottom:"6px" }}><Icon /></div>
+                  <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"1.9rem", fontWeight:500, color:"#f0c040", lineHeight:1 }}>{val}</div>
+                  <div style={{ fontSize:"9px", letterSpacing:"0.12em", color:"#8060a0", marginTop:"5px" }}>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Heatmap */}
+            {weeks && (
+              <div style={{
+                background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.13)",
+                borderRadius:"16px", padding:"1.3rem 1.5rem",
+                maxWidth:"860px", width:"100%", marginBottom:"1.4rem",
+              }}>
+                <div style={{ fontFamily:"'Cinzel',serif", fontSize:"10px", letterSpacing:"0.18em", color:"#8060a0", marginBottom:"10px" }}>
+                  ✦ CONTRIBUTION ACTIVITY — PAST 12 MONTHS · {totalCommits} TOTAL ✦
+                </div>
+                <div style={{ display:"flex", marginBottom:"4px", position:"relative", height:"14px" }}>
+                  {monthLabels.map(({ idx, label }) => (
+                    <div key={`${idx}-${label}`} style={{
+                      position:"absolute", left:`${(idx / weeks.length) * 100}%`,
+                      fontFamily:"'JetBrains Mono',monospace", fontSize:"9px", color:"#8060a0",
+                    }}>{label}</div>
+                  ))}
+                </div>
+                <div style={{ display:"flex", gap:"2px" }}>
+                  {weeks.map((week, wi) => (
+                    <div key={wi} style={{ display:"flex", flexDirection:"column", gap:"2px", flex:1 }}>
+                      {week.map((day, di) => (
+                        <div
+                          key={di}
+                          title={`${day.date} — ${day.count} contribution${day.count !== 1 ? "s" : ""}`}
+                          style={{
+                            width:"100%", aspectRatio:"1", borderRadius:"2px",
+                            background: LEVEL_COLORS[day.level] || LEVEL_COLORS[0],
+                            cursor:"pointer", transition:"transform 0.1s",
+                            boxShadow: day.level === 4 ? "0 0 4px rgba(240,192,64,0.55)" : "none",
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.transform="scale(1.8)"; e.currentTarget.style.zIndex="20"; }}
+                          onMouseLeave={e => { e.currentTarget.style.transform=""; e.currentTarget.style.zIndex=""; }}
+                        />
+                      ))}
                     </div>
+                  ))}
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:"5px", marginTop:"8px", justifyContent:"flex-end" }}>
+                  <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"9px", color:"#8060a0" }}>Less</span>
+                  {LEVEL_COLORS.map((c, i) => (
+                    <div key={i} style={{ width:"10px", height:"10px", borderRadius:"2px", background:c, border: i===0 ? "1px solid rgba(240,192,64,0.15)" : "none" }} />
+                  ))}
+                  <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"9px", color:"#8060a0" }}>More</span>
+                </div>
+              </div>
+            )}
 
-                    <p style={{ fontSize:"11px", color:"#8060a0", lineHeight:1.55, marginBottom:"10px",
-                      display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
-                      {repo.description || "No description"}
-                    </p>
-
-                    <div style={{ display:"flex", alignItems:"center", gap:"14px" }}>
-                      {repo.language && (
-                        <div style={{ display:"flex", alignItems:"center", gap:"5px" }}>
-                          <div style={{ width:"10px", height:"10px", borderRadius:"50%", background:"#c070ff" }} />
-                          <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"10px", color:"#8060a0" }}>{repo.language}</span>
+            {/* Top repos */}
+            {repos.length > 0 && (
+              <div style={{ maxWidth:"860px", width:"100%" }}>
+                <div style={{ fontFamily:"'Cinzel',serif", fontSize:"10px", letterSpacing:"0.18em", color:"#8060a0", marginBottom:"10px" }}>
+                  ✦ TOP REPOSITORIES ✦
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:"12px" }}>
+                  {repos.map(repo => (
+                    <a key={repo.id} href={repo.html_url} target="_blank" rel="noreferrer"
+                      style={{
+                        display:"block", textDecoration:"none",
+                        background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.13)",
+                        borderRadius:"14px", padding:"1.1rem 1.3rem", transition:"border-color 0.2s, transform 0.2s",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor="rgba(240,192,64,0.45)"; e.currentTarget.style.transform="translateY(-3px)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor="rgba(240,192,64,0.13)"; e.currentTarget.style.transform=""; }}
+                    >
+                      <div style={{ display:"flex", alignItems:"center", gap:"7px", marginBottom:"5px" }}>
+                        <div style={{ color:"#c070ff" }}><GithubIcon size={16}/></div>
+                        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"13px", fontWeight:500, color:"#c070ff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                          {repo.name}
+                        </span>
+                      </div>
+                      <p style={{ fontSize:"11px", color:"#8060a0", lineHeight:1.55, marginBottom:"10px",
+                        display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
+                        {repo.description || "No description"}
+                      </p>
+                      <div style={{ display:"flex", alignItems:"center", gap:"14px" }}>
+                        {repo.language && (
+                          <div style={{ display:"flex", alignItems:"center", gap:"5px" }}>
+                            <div style={{ width:"10px", height:"10px", borderRadius:"50%", background:"#c070ff" }} />
+                            <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"10px", color:"#8060a0" }}>{repo.language}</span>
+                          </div>
+                        )}
+                        <div style={{ display:"flex", alignItems:"center", gap:"4px", color:"#f0c040" }}>
+                          <StarIcon />
+                          <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"10px", color:"#8060a0" }}>{repo.stargazers_count}</span>
                         </div>
-                      )}
-                      <div style={{ display:"flex", alignItems:"center", gap:"4px", color:"#f0c040" }}>
-                        <StarIcon />
-                        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"10px", color:"#8060a0" }}>{repo.stargazers_count}</span>
+                        <div style={{ display:"flex", alignItems:"center", gap:"4px", color:"#8060a0" }}>
+                          <ForkIcon />
+                          <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"10px" }}>{repo.forks_count}</span>
+                        </div>
                       </div>
-                      <div style={{ display:"flex", alignItems:"center", gap:"4px", color:"#8060a0" }}>
-                        <ForkIcon />
-                        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"10px" }}>{repo.forks_count}</span>
-                      </div>
-                    </div>
-                  </a>
-                ))}
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
+
+      </div>
     </section>
   );
 });
