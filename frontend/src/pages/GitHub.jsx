@@ -8,28 +8,28 @@ const GithubIcon = ({ size = 22 }) => (
   </svg>
 );
 const StarIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
+  <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
   </svg>
 );
 const ForkIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15">
     <circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/>
     <path d="M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9"/><path d="M12 12v3"/>
   </svg>
 );
 const CommitIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
     <circle cx="12" cy="12" r="3"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/>
   </svg>
 );
 const RepoIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
     <path d="M3 3h18v18H3zM3 9h18M9 21V9"/>
   </svg>
 );
 const FlameIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+  <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
     <path d="M17.66 11.2C17.43 10.9 17.15 10.64 16.89 10.38C16.22 9.78 15.46 9.35 14.82 8.72C13.33 7.26 13 4.85 13.95 3C13 3.23 12.17 3.75 11.46 4.32C8.87 6.4 7.85 10.07 9.07 13.22C9.11 13.32 9.15 13.42 9.15 13.55C9.15 13.77 9 13.97 8.8 14.05C8.57 14.15 8.33 14.09 8.14 13.93C8.08 13.88 8.04 13.83 8 13.76C6.87 12.33 6.69 10.28 7.45 8.64C5.78 10 4.87 12.3 5 14.47C5.06 14.97 5.12 15.47 5.29 15.97C5.43 16.57 5.7 17.17 6 17.7C7.08 19.43 8.95 20.67 10.96 20.92C13.1 21.19 15.39 20.8 17.03 19.32C18.86 17.66 19.5 15 18.56 12.72L18.43 12.46C18.22 12 17.66 11.2 17.66 11.2Z"/>
   </svg>
 );
@@ -244,7 +244,7 @@ const GitHub = forwardRef(function GitHub(_, ref) {
       ref={setRef}
       className="page-section"
       style={{
-        position: "relative",        /* ← contains the stars canvas */
+        position: "relative",
         overflow: "hidden",
         justifyContent: "flex-start",
         paddingTop: "90px",
@@ -254,17 +254,15 @@ const GitHub = forwardRef(function GitHub(_, ref) {
           "#0d0118",
       }}
     >
-      {/* ── Stars layer ── */}
       <SectionStars />
 
-      {/* ── All content sits above stars ── */}
       <div style={{ position:"relative", zIndex:1, width:"100%", display:"flex", flexDirection:"column", alignItems:"center" }}>
 
         <SectionHeader eyebrow="OPEN SOURCE ACTIVITY" title="GitHub" highlight="Contributions" />
 
         {loading && (
           <div style={{ textAlign:"center", padding:"3rem 0" }}>
-            <div style={{ fontFamily:"'Cinzel',serif", fontSize:"12px", letterSpacing:"0.2em", color:"#8060a0" }}>
+            <div style={{ fontFamily:"'Cinzel',serif", fontSize:"14px", letterSpacing:"0.2em", color:"#8060a0" }}>
               FETCHING GITHUB DATA...
             </div>
             <div style={{ display:"flex", gap:"8px", justifyContent:"center", marginTop:"1rem" }}>
@@ -285,11 +283,11 @@ const GitHub = forwardRef(function GitHub(_, ref) {
             borderRadius:"12px", padding:"1.2rem 2rem", maxWidth:"500px",
             textAlign:"center", marginTop:"1rem",
           }}>
-            <div style={{ fontFamily:"'Cinzel',serif", fontSize:"12px", color:"#EF4743", marginBottom:"8px" }}>
+            <div style={{ fontFamily:"'Cinzel',serif", fontSize:"14px", color:"#EF4743", marginBottom:"8px" }}>
               FAILED TO LOAD GITHUB DATA
             </div>
-            <div style={{ fontSize:"12px", color:"#8060a0" }}>{error}</div>
-            <div style={{ fontSize:"11px", color:"#8060a0", marginTop:"8px" }}>
+            <div style={{ fontSize:"13px", color:"#8060a0" }}>{error}</div>
+            <div style={{ fontSize:"12px", color:"#8060a0", marginTop:"8px" }}>
               Check that <strong style={{color:"#f0c040"}}>GITHUB_USERNAME</strong> in GitHub.jsx is correct.
             </div>
           </div>
@@ -297,60 +295,68 @@ const GitHub = forwardRef(function GitHub(_, ref) {
 
         {dataReady && (
           <>
-            {/* Profile strip */}
+            {/* ── Profile strip ── */}
             <div style={{
-              display:"flex", alignItems:"center", gap:"1.2rem",
+              display:"flex", alignItems:"center", gap:"1.4rem",
               background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.18)",
-              borderRadius:"16px", padding:"1rem 1.6rem",
+              borderRadius:"16px", padding:"1.2rem 1.8rem",
               maxWidth:"860px", width:"100%", marginBottom:"1.4rem",
             }}>
-              <img src={user.avatar_url} alt={user.login} style={{ width:"56px", height:"56px", borderRadius:"50%", border:"2px solid rgba(240,192,64,0.35)", flexShrink:0, objectFit:"cover" }} />
+              <img src={user.avatar_url} alt={user.login} style={{ width:"64px", height:"64px", borderRadius:"50%", border:"2px solid rgba(240,192,64,0.35)", flexShrink:0, objectFit:"cover" }} />
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontFamily:"'Cinzel',serif", fontSize:"17px", fontWeight:700, color:"#f0c040" }}>{user.name || user.login}</div>
-                <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"11px", color:"#8060a0" }}>@{user.login}</div>
+                {/* Name */}
+                <div style={{ fontFamily:"'Cinzel',serif", fontSize:"24px", fontWeight:700, color:"#f0c040" }}>{user.name || user.login}</div>
+                {/* Handle */}
+                <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"15px", color:"#8060a0", marginTop:"2px" }}>@{user.login}</div>
+                {/* Bio */}
                 {user.bio && (
-                  <div style={{ fontSize:"12px", color:"#c4a0e8", marginTop:"4px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.bio}</div>
+                  <div style={{ fontSize:"16px", color:"#c4a0e8", marginTop:"5px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.bio}</div>
                 )}
               </div>
               <a href={`https://github.com/${GITHUB_USERNAME}`} target="_blank" rel="noreferrer"
                 className="btn-ghost"
-                style={{ fontSize:"10px", padding:"7px 16px", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:"6px" }}>
-                <GithubIcon size={13} /> VIEW PROFILE ↗
+                style={{ fontSize:"12px", padding:"8px 18px", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:"6px" }}>
+                <GithubIcon size={15} /> VIEW PROFILE ↗
               </a>
             </div>
 
-            {/* Stat counters */}
+            {/* ── Stat counters ── */}
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"12px", maxWidth:"860px", width:"100%", marginBottom:"1.4rem" }}>
               {STATS.map(({ label, val, Icon }) => (
                 <div key={label} style={{
                   background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.13)",
-                  borderRadius:"14px", padding:"1.1rem 1rem", textAlign:"center",
+                  borderRadius:"14px", padding:"1.2rem 1rem", textAlign:"center",
                 }}>
-                  <div style={{ display:"flex", justifyContent:"center", color:"#f0c040", marginBottom:"6px" }}><Icon /></div>
-                  <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"1.9rem", fontWeight:500, color:"#f0c040", lineHeight:1 }}>{val}</div>
-                  <div style={{ fontSize:"9px", letterSpacing:"0.12em", color:"#8060a0", marginTop:"5px" }}>{label}</div>
+                  <div style={{ display:"flex", justifyContent:"center", color:"#f0c040", marginBottom:"8px" }}><Icon /></div>
+                  {/* Counter number */}
+                  <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"2.6rem", fontWeight:600, color:"#f0c040", lineHeight:1 }}>{val}</div>
+                  {/* Label */}
+                  <div style={{ fontSize:"13px", letterSpacing:"0.14em", color:"#8060a0", marginTop:"7px" }}>{label}</div>
                 </div>
               ))}
             </div>
 
-            {/* Heatmap */}
+            {/* ── Heatmap ── */}
             {weeks && (
               <div style={{
                 background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.13)",
-                borderRadius:"16px", padding:"1.3rem 1.5rem",
+                borderRadius:"16px", padding:"1.4rem 1.6rem",
                 maxWidth:"860px", width:"100%", marginBottom:"1.4rem",
               }}>
-                <div style={{ fontFamily:"'Cinzel',serif", fontSize:"10px", letterSpacing:"0.18em", color:"#8060a0", marginBottom:"10px" }}>
+                {/* Heatmap title */}
+                <div style={{ fontFamily:"'Cinzel',serif", fontSize:"14px", letterSpacing:"0.18em", color:"#8060a0", marginBottom:"12px" }}>
                   ✦ CONTRIBUTION ACTIVITY — PAST 12 MONTHS · {totalCommits} TOTAL ✦
                 </div>
-                <div style={{ display:"flex", marginBottom:"4px", position:"relative", height:"14px" }}>
+                {/* Month labels */}
+                <div style={{ display:"flex", marginBottom:"5px", position:"relative", height:"18px" }}>
                   {monthLabels.map(({ idx, label }) => (
                     <div key={`${idx}-${label}`} style={{
                       position:"absolute", left:`${(idx / weeks.length) * 100}%`,
-                      fontFamily:"'JetBrains Mono',monospace", fontSize:"9px", color:"#8060a0",
+                      fontFamily:"'JetBrains Mono',monospace", fontSize:"13px", color:"#8060a0",
                     }}>{label}</div>
                   ))}
                 </div>
+                {/* Grid */}
                 <div style={{ display:"flex", gap:"2px" }}>
                   {weeks.map((week, wi) => (
                     <div key={wi} style={{ display:"flex", flexDirection:"column", gap:"2px", flex:1 }}>
@@ -371,20 +377,22 @@ const GitHub = forwardRef(function GitHub(_, ref) {
                     </div>
                   ))}
                 </div>
-                <div style={{ display:"flex", alignItems:"center", gap:"5px", marginTop:"8px", justifyContent:"flex-end" }}>
-                  <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"9px", color:"#8060a0" }}>Less</span>
+                {/* Legend */}
+                <div style={{ display:"flex", alignItems:"center", gap:"5px", marginTop:"10px", justifyContent:"flex-end" }}>
+                  <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"13px", color:"#8060a0" }}>Less</span>
                   {LEVEL_COLORS.map((c, i) => (
-                    <div key={i} style={{ width:"10px", height:"10px", borderRadius:"2px", background:c, border: i===0 ? "1px solid rgba(240,192,64,0.15)" : "none" }} />
+                    <div key={i} style={{ width:"12px", height:"12px", borderRadius:"2px", background:c, border: i===0 ? "1px solid rgba(240,192,64,0.15)" : "none" }} />
                   ))}
-                  <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"9px", color:"#8060a0" }}>More</span>
+                  <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"13px", color:"#8060a0" }}>More</span>
                 </div>
               </div>
             )}
 
-            {/* Top repos */}
+            {/* ── Top repos ── */}
             {repos.length > 0 && (
               <div style={{ maxWidth:"860px", width:"100%" }}>
-                <div style={{ fontFamily:"'Cinzel',serif", fontSize:"10px", letterSpacing:"0.18em", color:"#8060a0", marginBottom:"10px" }}>
+                {/* Section label */}
+                <div style={{ fontFamily:"'Cinzel',serif", fontSize:"14px", letterSpacing:"0.18em", color:"#8060a0", marginBottom:"12px" }}>
                   ✦ TOP REPOSITORIES ✦
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:"12px" }}>
@@ -393,35 +401,38 @@ const GitHub = forwardRef(function GitHub(_, ref) {
                       style={{
                         display:"block", textDecoration:"none",
                         background:"rgba(30,6,64,0.9)", border:"1px solid rgba(240,192,64,0.13)",
-                        borderRadius:"14px", padding:"1.1rem 1.3rem", transition:"border-color 0.2s, transform 0.2s",
+                        borderRadius:"14px", padding:"1.2rem 1.4rem", transition:"border-color 0.2s, transform 0.2s",
                       }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor="rgba(240,192,64,0.45)"; e.currentTarget.style.transform="translateY(-3px)"; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor="rgba(240,192,64,0.13)"; e.currentTarget.style.transform=""; }}
                     >
-                      <div style={{ display:"flex", alignItems:"center", gap:"7px", marginBottom:"5px" }}>
-                        <div style={{ color:"#c070ff" }}><GithubIcon size={16}/></div>
-                        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"13px", fontWeight:500, color:"#c070ff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {/* Repo name */}
+                      <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"7px" }}>
+                        <div style={{ color:"#c070ff" }}><GithubIcon size={18}/></div>
+                        <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"17px", fontWeight:500, color:"#c070ff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                           {repo.name}
                         </span>
                       </div>
-                      <p style={{ fontSize:"11px", color:"#8060a0", lineHeight:1.55, marginBottom:"10px",
+                      {/* Description */}
+                      <p style={{ fontSize:"15px", color:"#8060a0", lineHeight:1.6, marginBottom:"12px",
                         display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
                         {repo.description || "No description"}
                       </p>
+                      {/* Meta row */}
                       <div style={{ display:"flex", alignItems:"center", gap:"14px" }}>
                         {repo.language && (
                           <div style={{ display:"flex", alignItems:"center", gap:"5px" }}>
-                            <div style={{ width:"10px", height:"10px", borderRadius:"50%", background:"#c070ff" }} />
-                            <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"10px", color:"#8060a0" }}>{repo.language}</span>
+                            <div style={{ width:"11px", height:"11px", borderRadius:"50%", background:"#c070ff" }} />
+                            <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"13px", color:"#8060a0" }}>{repo.language}</span>
                           </div>
                         )}
-                        <div style={{ display:"flex", alignItems:"center", gap:"4px", color:"#f0c040" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:"5px", color:"#f0c040" }}>
                           <StarIcon />
-                          <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"10px", color:"#8060a0" }}>{repo.stargazers_count}</span>
+                          <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"13px", color:"#8060a0" }}>{repo.stargazers_count}</span>
                         </div>
-                        <div style={{ display:"flex", alignItems:"center", gap:"4px", color:"#8060a0" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:"5px", color:"#8060a0" }}>
                           <ForkIcon />
-                          <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"10px" }}>{repo.forks_count}</span>
+                          <span style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"13px" }}>{repo.forks_count}</span>
                         </div>
                       </div>
                     </a>

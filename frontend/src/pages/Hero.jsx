@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef } from "react";
-import profileImg from "../assets/bg.png";
+import profileImg from "../assets/public.png";
 
 /* ── Standard SVG icons ── */
 const MailIcon = () => (
@@ -38,12 +38,12 @@ const CONTACTS = [
   { Icon: LinkedinIcon, label: "LinkedIn", val: "in/sakthinathan-v",         href: "https://linkedin.com/in/sakthinathan-v-374a202a2" },
 ];
 
-/* ── Sizes ── */
-const SIZE  = 560;
-const INNER = 218;
+/* ══════════════════════════════════════════
+   FLOATING ORB + NEBULA GLOW  (all violet)
+   ══════════════════════════════════════════ */
 
-/* ── Stars ── */
-function HeroStars() {
+/* ── Twinkling violet star dust ── */
+function NebulaStars() {
   const ref = useRef(null);
   useEffect(() => {
     const canvas = ref.current;
@@ -51,13 +51,13 @@ function HeroStars() {
     const ctx = canvas.getContext("2d");
     let raf;
     const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
-    const makeStars = () => Array.from({ length: 160 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      r: Math.random() * 1.6 + 0.3,
-      a: Math.random(),
-      da: (Math.random() - 0.5) * 0.007,
-      col: Math.random() > 0.55 ? "#f0c040" : "#c070ff",
+    const makeStars = () => Array.from({ length: 120 }, () => ({
+      x:  Math.random() * canvas.width,
+      y:  Math.random() * canvas.height,
+      r:  Math.random() * 1.2 + 0.2,
+      a:  Math.random(),
+      da: (Math.random() - 0.5) * 0.004,
+      hue: [265, 270, 275, 280, 290][Math.floor(Math.random() * 5)],
     }));
     resize();
     let s = makeStars();
@@ -66,14 +66,12 @@ function HeroStars() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       s.forEach((star) => {
         star.a += star.da;
-        if (star.a <= 0 || star.a >= 1) star.da *= -1;
+        if (star.a <= 0.05 || star.a >= 0.95) star.da *= -1;
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-        ctx.fillStyle   = star.col;
-        ctx.globalAlpha = Math.max(0, Math.min(1, star.a));
+        ctx.fillStyle = `hsla(${star.hue}, 60%, 85%, ${star.a * 0.7})`;
         ctx.fill();
       });
-      ctx.globalAlpha = 1;
       raf = requestAnimationFrame(draw);
     };
     draw();
@@ -84,80 +82,187 @@ function HeroStars() {
   );
 }
 
-/* ── Equalizer ring + profile photo ── */
-function EqualizerRing() {
-  const canvasRef = useRef(null);
-  const animRef   = useRef(null);
+/* ── Drifting violet nebula blobs ── */
+function NebulaClouds() {
+  const ref = useRef(null);
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = ref.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    const CX = SIZE / 2, CY = SIZE / 2;
-    const BARS = 110, MAX_H = 70;
-    canvas.width = SIZE; canvas.height = SIZE;
-    const bars = Array.from({ length: BARS }, () => ({
-      phase: Math.random() * Math.PI * 2,
-      speed: 0.014 + Math.random() * 0.02,
-      minH:  6 + Math.random() * 8,
-      maxH:  22 + Math.random() * (MAX_H - 22),
-    }));
-    const PALETTE = [
-      { h:265, s:90, l:68 },
-      { h:280, s:95, l:65 },
-      { h:295, s:88, l:63 },
-      { h:310, s:80, l:62 },
-      { h: 45, s:95, l:60 },
-      { h:280, s:95, l:65 },
+    let raf, t = 0;
+    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+    resize();
+    window.addEventListener("resize", resize);
+    const blobs = [
+      { cx:0.72, cy:0.30, rx:320, ry:220, hue:270, sat:80, lit:50, baseA:0.07 },
+      { cx:0.85, cy:0.65, rx:260, ry:180, hue:280, sat:75, lit:55, baseA:0.06 },
+      { cx:0.60, cy:0.15, rx:200, ry:140, hue:265, sat:70, lit:60, baseA:0.05 },
+      { cx:0.78, cy:0.80, rx:180, ry:120, hue:275, sat:65, lit:58, baseA:0.055 },
     ];
-    const colorAt = (angle) => {
-      const norm = ((angle / (Math.PI * 2)) + 1) % 1;
-      const total = PALETTE.length - 1;
-      const pos = norm * total;
-      const lo = Math.floor(pos), hi = Math.min(lo + 1, total);
-      const mix = pos - lo;
-      const a = PALETTE[lo], b = PALETTE[hi];
-      return { h: a.h+(b.h-a.h)*mix, s: a.s+(b.s-a.s)*mix, l: a.l+(b.l-a.l)*mix };
-    };
-    let t = 0;
     const draw = () => {
-      ctx.clearRect(0, 0, SIZE, SIZE);
-      bars.forEach((bar, i) => {
-        const angle  = (i / BARS) * Math.PI * 2 - Math.PI / 2;
-        const height = bar.minH + (bar.maxH - bar.minH) * (0.5 + 0.5 * Math.sin(t * bar.speed + bar.phase));
-        const x1 = CX + Math.cos(angle) * INNER, y1 = CY + Math.sin(angle) * INNER;
-        const x2 = CX + Math.cos(angle) * (INNER + height), y2 = CY + Math.sin(angle) * (INNER + height);
-        const { h, s, l } = colorAt(angle + Math.PI / 2);
-        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
-        ctx.strokeStyle = `hsl(${h},${s}%,${l}%)`;
-        ctx.lineWidth = 3; ctx.lineCap = "round";
-        ctx.shadowColor = `hsl(${h},${s}%,${l+8}%)`; ctx.shadowBlur = 12;
-        ctx.stroke(); ctx.shadowBlur = 0;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      blobs.forEach((b, i) => {
+        const drift = Math.sin(t * 0.0006 + i * 1.4) * 18;
+        const pulse = 1 + Math.sin(t * 0.0009 + i * 0.8) * 0.08;
+        const cx = canvas.width  * b.cx + drift;
+        const cy = canvas.height * b.cy + drift * 0.5;
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, b.rx * pulse);
+        g.addColorStop(0,    `hsla(${b.hue},${b.sat}%,${b.lit}%,${b.baseA * 1.6})`);
+        g.addColorStop(0.45, `hsla(${b.hue},${b.sat}%,${b.lit - 5}%,${b.baseA})`);
+        g.addColorStop(1,    `hsla(${b.hue},${b.sat}%,${b.lit - 15}%,0)`);
+        ctx.save();
+        ctx.scale(1, b.ry / b.rx);
+        ctx.beginPath();
+        ctx.arc(cx, cy * (b.rx / b.ry), b.rx * pulse, 0, Math.PI * 2);
+        ctx.fillStyle = g;
+        ctx.fill();
+        ctx.restore();
       });
       t++;
-      animRef.current = requestAnimationFrame(draw);
+      raf = requestAnimationFrame(draw);
     };
     draw();
-    return () => cancelAnimationFrame(animRef.current);
+    return () => cancelAnimationFrame(raf);
   }, []);
-
-  const PHOTO_D = INNER * 2 - 6;
   return (
-    <div style={{ position:"relative", width:SIZE, height:SIZE, margin:"0 auto", flexShrink:0, zIndex:1 }}>
-      <canvas ref={canvasRef} style={{ position:"absolute", top:0, left:0, width:SIZE, height:SIZE }} />
-      <div style={{
-        position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)",
-        width:PHOTO_D, height:PHOTO_D, borderRadius:"50%", overflow:"hidden",
-        border:"4px solid rgba(155,64,212,0.8)",
-        boxShadow:"0 0 40px rgba(155,64,212,0.6), 0 0 80px rgba(106,31,160,0.35)",
-      }}>
-        <img src={profileImg} alt="Sakthinathan V"
-          style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"top center", display:"block" }}
-        />
-      </div>
-    </div>
+    <canvas ref={ref} style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none", zIndex:0 }} />
   );
 }
 
+/* ── Floating Orb: bobbing photo + layered violet halo rings ── */
+function FloatingOrb() {
+  const PHOTO_D = 480;  // ← increased from 360
+  const WRAP_D  = 700;  // ← increased from 560
+
+  return (
+    <>
+      <style>{`
+        @keyframes orbFloat {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          33%       { transform: translateY(-14px) rotate(0.8deg); }
+          66%       { transform: translateY(-8px) rotate(-0.5deg); }
+        }
+        @keyframes halo1Spin {
+          from { transform: translate(-50%,-50%) rotate(0deg); }
+          to   { transform: translate(-50%,-50%) rotate(360deg); }
+        }
+        @keyframes halo2Spin {
+          from { transform: translate(-50%,-50%) rotate(0deg); }
+          to   { transform: translate(-50%,-50%) rotate(-360deg); }
+        }
+        @keyframes halo3Pulse {
+          0%,100% { opacity:0.35; transform:translate(-50%,-50%) scale(1); }
+          50%     { opacity:0.55; transform:translate(-50%,-50%) scale(1.03); }
+        }
+        @keyframes sheen {
+          0%   { opacity:0; transform:translateX(-120%) rotate(35deg); }
+          18%  { opacity:0.18; }
+          40%  { opacity:0; transform:translateX(180%) rotate(35deg); }
+          100% { opacity:0; transform:translateX(180%) rotate(35deg); }
+        }
+      `}</style>
+
+      <div style={{
+        position:"relative", width:WRAP_D, height:WRAP_D,
+        flexShrink:0, animation:"orbFloat 7s ease-in-out infinite",
+        zIndex:1, margin:"0 auto",
+      }}>
+
+        {/* Outermost nebula bloom */}
+        <div style={{
+          position:"absolute", top:"50%", left:"50%",
+          width:WRAP_D * 1.55, height:WRAP_D * 1.55,
+          borderRadius:"50%", transform:"translate(-50%,-50%)",
+          background:"radial-gradient(circle, hsla(270,90%,65%,0.08) 0%, hsla(275,85%,60%,0.06) 35%, hsla(270,80%,50%,0.03) 65%, transparent 80%)",
+          pointerEvents:"none",
+        }} />
+
+        {/* Halo ring 3 — slow pulse */}
+        <div style={{
+          position:"absolute", top:"50%", left:"50%",
+          width:PHOTO_D + 170, height:PHOTO_D + 170,
+          borderRadius:"50%",
+          animation:"halo3Pulse 5s ease-in-out infinite",
+          border:"1px solid hsla(270,85%,70%,0.18)",
+          background:"radial-gradient(circle, transparent 40%, hsla(272,80%,65%,0.05) 70%, hsla(278,75%,55%,0.08) 100%)",
+          boxShadow:"0 0 60px hsla(270,80%,65%,0.12), inset 0 0 40px hsla(275,75%,60%,0.06)",
+          pointerEvents:"none",
+        }} />
+
+        {/* Halo ring 2 — slow CCW spin */}
+        <div style={{
+          position:"absolute", top:"50%", left:"50%",
+          width:PHOTO_D + 110, height:PHOTO_D + 110,
+          borderRadius:"50%",
+          animation:"halo2Spin 22s linear infinite",
+          backgroundImage:"conic-gradient(hsla(268,90%,72%,0.28) 0deg, transparent 20deg, hsla(278,80%,70%,0.22) 45deg, transparent 65deg, hsla(272,85%,68%,0.25) 120deg, transparent 140deg, hsla(280,80%,65%,0.20) 200deg, transparent 220deg, hsla(265,90%,72%,0.22) 300deg, transparent 320deg, hsla(268,90%,72%,0.28) 360deg)",
+          WebkitMask:"radial-gradient(farthest-side, transparent calc(100% - 1.5px), white calc(100% - 1.5px))",
+          mask:"radial-gradient(farthest-side, transparent calc(100% - 1.5px), white calc(100% - 1.5px))",
+          pointerEvents:"none",
+        }} />
+
+        {/* Halo ring 1 — slow CW spin */}
+        <div style={{
+          position:"absolute", top:"50%", left:"50%",
+          width:PHOTO_D + 60, height:PHOTO_D + 60,
+          borderRadius:"50%",
+          animation:"halo1Spin 30s linear infinite",
+          backgroundImage:"conic-gradient(hsla(268,100%,75%,0.35) 0deg, transparent 15deg, hsla(278,85%,72%,0.30) 70deg, transparent 90deg, hsla(272,90%,70%,0.32) 160deg, transparent 175deg, hsla(282,80%,68%,0.28) 250deg, transparent 265deg, hsla(265,95%,72%,0.30) 330deg, transparent 345deg, hsla(268,100%,75%,0.35) 360deg)",
+          WebkitMask:"radial-gradient(farthest-side, transparent calc(100% - 1px), white calc(100% - 1px))",
+          mask:"radial-gradient(farthest-side, transparent calc(100% - 1px), white calc(100% - 1px))",
+          pointerEvents:"none",
+        }} />
+
+        {/* Glassy violet border glow */}
+        <div style={{
+          position:"absolute", top:"50%", left:"50%",
+          transform:"translate(-50%,-50%)",
+          width:PHOTO_D + 24, height:PHOTO_D + 24,
+          borderRadius:"50%", background:"transparent",
+          boxShadow:[
+            "0 0 0 1px hsla(270,90%,75%,0.30)",
+            "0 0 30px hsla(272,85%,65%,0.35)",
+            "0 0 70px hsla(275,80%,60%,0.20)",
+            "0 0 120px hsla(278,75%,55%,0.12)",
+            "inset 0 0 20px hsla(268,90%,75%,0.12)",
+          ].join(", "),
+          pointerEvents:"none",
+        }} />
+
+        {/* Photo */}
+        <div style={{
+          position:"absolute", top:"50%", left:"50%",
+          transform:"translate(-50%,-50%)",
+          width:PHOTO_D, height:PHOTO_D,
+          borderRadius:"50%", overflow:"hidden",
+          background:"hsla(270,30%,10%,1)",
+          border:"4px solid rgba(155,64,212,0.8)",
+          boxShadow:"0 0 40px rgba(155,64,212,0.6), 0 0 80px rgba(106,31,160,0.35)",
+        }}>
+          {/* sheen sweep */}
+          <div style={{ position:"absolute", inset:0, zIndex:2, overflow:"hidden", borderRadius:"50%", pointerEvents:"none" }}>
+            <div style={{
+              position:"absolute", top:"-30%", left:0,
+              width:"55%", height:"160%",
+              background:"linear-gradient(to right, transparent, hsla(0,0%,100%,0.09), transparent)",
+              animation:"sheen 6s ease-in-out infinite 1.5s",
+            }} />
+          </div>
+          <img
+            src={profileImg}
+            alt="Sakthinathan V"
+            style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"top center", display:"block", position:"relative", zIndex:1 }}
+          />
+        </div>
+
+      </div>
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════
+   HERO SECTION
+   ══════════════════════════════════════════ */
 const Hero = forwardRef(function Hero({ goPage }, ref) {
   return (
     <section
@@ -172,36 +277,32 @@ const Hero = forwardRef(function Hero({ goPage }, ref) {
           "#0d0118",
       }}
     >
-      <HeroStars />
+      <NebulaStars />
+      <NebulaClouds />
 
       <div className="hero-grid" style={{ position:"relative", zIndex:1 }}>
 
         {/* LEFT: text */}
         <div className="anim-d1">
 
-          {/* Badge */}
           <div className="hero-badge" style={{ fontSize:"15px", letterSpacing:"0.12em" }}>
             ✦ FULLSTACK DEVELOPER ✦
           </div>
 
-          {/* Name */}
           <h1 className="hero-name" style={{ fontSize:"clamp(2.6rem, 5vw, 4.2rem)", lineHeight:1.05, marginBottom:"0.5rem" }}>
             SAKTHINATHAN V
           </h1>
 
-          {/* Stack subtitle */}
           <p className="hero-sub" style={{ fontSize:"clamp(1rem, 1.8vw, 1.25rem)", marginBottom:"1rem", letterSpacing:"0.04em" }}>
             React.js · React Native · Python · Java · UI/UX
           </p>
 
-          {/* Bio */}
           <p className="hero-bio" style={{ fontSize:"clamp(0.95rem, 1.4vw, 1.1rem)", lineHeight:1.75, marginBottom:"1.2rem" }}>
             Aspiring software engineer pursuing B.E. Computer Science Engineering.
             Passionate about crafting immersive web &amp; mobile applications with
             user-centric design and clean, performant code.
           </p>
 
-          {/* Contact rows */}
           <div style={{ display:"flex", flexDirection:"column", gap:"11px", marginBottom:"1.2rem" }}>
             {CONTACTS.map(({ Icon, label, val, href }) => (
               <div key={label} className="contact-info-row" style={{ fontSize:"1rem" }}>
@@ -222,9 +323,9 @@ const Hero = forwardRef(function Hero({ goPage }, ref) {
           </div>
         </div>
 
-        {/* RIGHT: photo + ring */}
+        {/* RIGHT: Floating Orb */}
         <div className="hero-moon-col" style={{ display:"flex", alignItems:"center", justifyContent:"center", width:"100%", height:"100%" }}>
-          <EqualizerRing />
+          <FloatingOrb />
         </div>
 
       </div>

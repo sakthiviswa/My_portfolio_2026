@@ -70,23 +70,21 @@ const Education = forwardRef(function Education(_, ref) {
 
             {/* LEFT SLOT */}
             {edu.side === "left" ? (
-              /* Card on the left */
               <div
                 className="edu-card"
                 style={{ border:`1px solid ${edu.cardBorder}`, textAlign:"right" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor=edu.accent; e.currentTarget.style.transform="scale(1.02)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor=edu.cardBorder; e.currentTarget.style.transform="scale(1)"; }}
               >
-                <div className="edu-period" style={{ color:edu.accent }}>{edu.period}</div>
-                <div className="edu-school" style={{ color:edu.accent }}>{edu.school}</div>
-                <div className="edu-loc">{edu.location}</div>
-                <span className="edu-score" style={{ border:`1px solid ${edu.scoreBorder}`, background:edu.scoreBg, color:edu.accent }}>{edu.score}</span>
+                <div className="edu-period" style={{ color:edu.accent, fontSize:"1.2rem" }}>{edu.period}</div>
+                <div className="edu-school"  style={{ color:edu.accent, fontSize:"1.5rem", fontWeight:700, lineHeight:1.3 }}>{edu.school}</div>
+                <div className="edu-loc"     style={{ fontSize:"1.15rem" }}>{edu.location}</div>
+                <span className="edu-score"  style={{ border:`1px solid ${edu.scoreBorder}`, background:edu.scoreBg, color:edu.accent, fontSize:"1.15rem", padding:"0.35rem 1rem" }}>{edu.score}</span>
               </div>
             ) : (
-              /* Text on the left */
               <div className="edu-card-ghost" style={{ textAlign:"right", paddingRight:"1rem" }}>
-                <div className="edu-degree">{edu.degree}</div>
-                <p className="edu-desc">{edu.desc}</p>
+                <div className="edu-degree" style={{ fontSize:"1.35rem", fontWeight:600, marginBottom:"0.5rem" }}>{edu.degree}</div>
+                <p className="edu-desc"     style={{ fontSize:"1.1rem", lineHeight:1.75 }}>{edu.desc}</p>
               </div>
             )}
 
@@ -103,23 +101,21 @@ const Education = forwardRef(function Education(_, ref) {
 
             {/* RIGHT SLOT */}
             {edu.side === "right" ? (
-              /* Card on the right */
               <div
                 className="edu-card"
                 style={{ border:`1px solid ${edu.cardBorder}`, textAlign:"left" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor=edu.accent; e.currentTarget.style.transform="scale(1.02)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor=edu.cardBorder; e.currentTarget.style.transform="scale(1)"; }}
               >
-                <div className="edu-period" style={{ color:edu.accent }}>{edu.period}</div>
-                <div className="edu-school" style={{ color:edu.accent }}>{edu.school}</div>
-                <div className="edu-loc">{edu.location}</div>
-                <span className="edu-score" style={{ border:`1px solid ${edu.scoreBorder}`, background:edu.scoreBg, color:edu.accent }}>{edu.score}</span>
+                <div className="edu-period" style={{ color:edu.accent, fontSize:"1.2rem" }}>{edu.period}</div>
+                <div className="edu-school"  style={{ color:edu.accent, fontSize:"1.5rem", fontWeight:700, lineHeight:1.3 }}>{edu.school}</div>
+                <div className="edu-loc"     style={{ fontSize:"1.15rem" }}>{edu.location}</div>
+                <span className="edu-score"  style={{ border:`1px solid ${edu.scoreBorder}`, background:edu.scoreBg, color:edu.accent, fontSize:"1.15rem", padding:"0.35rem 1rem" }}>{edu.score}</span>
               </div>
             ) : (
-              /* Text on the right */
               <div className="edu-card-ghost" style={{ textAlign:"left", paddingLeft:"1rem" }}>
-                <div className="edu-degree">{edu.degree}</div>
-                <p className="edu-desc">{edu.desc}</p>
+                <div className="edu-degree" style={{ fontSize:"1.35rem", fontWeight:600, marginBottom:"0.5rem" }}>{edu.degree}</div>
+                <p className="edu-desc"     style={{ fontSize:"1.1rem", lineHeight:1.75 }}>{edu.desc}</p>
               </div>
             )}
           </div>
