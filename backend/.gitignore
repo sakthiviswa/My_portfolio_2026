@@ -1,0 +1,75 @@
+# Python virtual environment
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# SQLite database (contains user messages - keep private)
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Flask / Werkzeug
+instance/
+.webassets-cache
+flask_session/
+
+# Pytest
+.pytest_cache/
+.cache/
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
