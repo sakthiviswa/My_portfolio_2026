@@ -13,7 +13,7 @@ const LABELS = [
     return (
       <nav className="portfolio-nav">
         {/* Logo */}
-        <div className="nav-logo">SAK<span>THI</span></div>
+        <div className="nav-logo">SAKTHI<span>VISWA</span></div>
   
         {/* Dot indicators — one per page */}
         <div className="nav-dots">
